@@ -1,82 +1,62 @@
-import SwiftUI
-// inspo: https://dribbble.com/shots/5527963-Simple-Gym-App-Ui-Main-Menu
+//
+//  ContentView.swift
+//  fillinControl1
+//
+//  Created by Peter Sederblad on 2023-08-09.
+//
 
+import Foundation
+import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var vm = ViewModel()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    private let width: Double = 250
+    
     var body: some View {
         VStack {
-            ZStack {
-                HStack {
-                    // Navbar icon
-                    Image(systemName: "list.bullet")
-                        .font(.title)
-                        .foregroundColor(.black)
-                        .padding([.leading, .top, .bottom])
-                        .bold(true)
-                        Spacer()
+            Text("\(vm.time)")
+                .font(.system(size: 70, weight: .medium, design: .rounded))
+                .padding()
+                .frame(width: width)
+                .background(.thinMaterial)
+                .cornerRadius(20)
+                .overlay(RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.gray, lineWidth: 4))
+                .alert("Timer done!", isPresented: $vm.showingAlert) {
+                    Button("Continue", role: .cancel) {
+                        // code
+                        
+                    }
                 }
+            
+            Slider(value: $vm.minutes, in: 1...25, step: 1)
+                .padding()
+                .frame(width: width)
+                .disabled(vm.isActive)
+                .animation(.easeInOut, value: vm.minutes)
+            
+            HStack(spacing: 50) {
+                Button("Start") {
+                    vm.start(minutes: vm.minutes)
+                }
+                .disabled(vm.isActive)
                 
-                //App name
-                Text("fillin control")
-                    .font(.custom("HelveticaNeue", size: 44, relativeTo: .largeTitle))
-                        .foregroundColor(.black)
-                        .padding([.top, .bottom])
-                        .fontWeight(.bold)
+                
+                Button("Reset", action: vm.reset)
+                    .tint(.red)
             }
             
-            VStack(spacing: 0){
-                Button("Menu item 1") {
-                    // button action
-                }
-                .buttonStyle(CustomButtonStyle(color: .red))
-//                .background(Color.yellow)
-                
-                Button("Menu item 2") {
-                    print("Menu item 2 tapped")
-                }
-                .buttonStyle(CustomButtonStyle(color: .blue))
-                .background(Color.blue)
-                
-                Button("Menu item 3") {
-                    print("Menu item 3 tapped")
-                }
-                .buttonStyle(CustomButtonStyle(color: .purple))
-                .background(Color.orange)
-                
-                Button("Menu item 4"){
-                    print("Menu item 4 tapped")
-                }
-                .buttonStyle(CustomButtonStyle(color: .orange))
-                .background(Color.green)
-                Spacer()
-            
-            }
-            
-            Spacer() // This will push your buttons up
         }
-        .background(Color.white)
-//        Color.white.edgesIgnoringSafeArea(.all)
-        
-                  }
-    }
-
-struct CustomButtonStyle: ButtonStyle {
-    var color: Color
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .foregroundColor(.white)
-            .bold(true)
-            .background(color)
-            .font(.title)
-            
+        .onReceive(timer) { _ in
+            vm.updateCountDown()
+        }
     }
 }
-
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
 }
+
